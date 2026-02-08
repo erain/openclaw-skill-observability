@@ -1,6 +1,6 @@
 {
   "name": "openclaw-skill-observability",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Observability tools for OpenClaw (logs, costs)",
   "main": "index.mjs",
   "type": "module",
