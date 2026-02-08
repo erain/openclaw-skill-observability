@@ -1,0 +1,17 @@
+{
+  "name": "openclaw-skill-observability",
+  "version": "1.0.0",
+  "description": "Observability tools for OpenClaw (logs, costs)",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openclaw",
+    "skill",
+    "observability"
+  ],
+  "author": "",
+  "license": "ISC"
+}
