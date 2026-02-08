@@ -3,6 +3,33 @@ import util from 'util';
 
 const execPromise = util.promisify(exec);
 
+// Pricing per 1M tokens { in, out }
+// Order matters: specific keys should come before general keys (e.g., 'gpt-4o-mini' before 'gpt-4o')
+const PRICING_TABLE = {
+  // OpenAI
+  'gpt-4o-mini': { in: 0.15, out: 0.60 },
+  'gpt-4o': { in: 2.50, out: 10.00 },
+  'o3-mini': { in: 1.10, out: 4.40 },
+  'o1': { in: 15.00, out: 60.00 },
+
+  // Anthropic
+  'claude-3-5-sonnet': { in: 3.00, out: 15.00 },
+  'claude-3-haiku': { in: 0.25, out: 1.25 },
+  'claude-3-opus': { in: 15.00, out: 75.00 },
+
+  // Google
+  'gemini-1.5-pro': { in: 3.50, out: 10.50 },
+  'gemini-1.5-flash': { in: 0.075, out: 0.30 },
+
+  // DeepSeek
+  'deepseek-chat': { in: 0.14, out: 0.28 },
+  'deepseek-reasoner': { in: 0.55, out: 2.19 },
+
+  // Legacy
+  'gemini-3': { in: 3.00, out: 10.00 }, // Legacy Gemini 3 estimate
+  'gpt-5.2': { in: 5.00, out: 15.00 }   // Legacy GPT-5.2 estimate
+};
+
 async function getSessions(limit) {
   try {
     const { stdout } = await execPromise(`openclaw sessions list --json --limit ${limit}`);
@@ -50,22 +77,20 @@ export async function get_cost_report() {
       let cost = 0;
       const inM = data.inputTokens / 1_000_000;
       const outM = data.outputTokens / 1_000_000;
-
-      // Pricing logic
-      // Hardcode pricing: Gemini Pro ~$3/1M in, $10/1M out; Flash ~$0.1/1M; GPT-5.2 ~$5/15
       const lowerModel = model.toLowerCase();
-      
-      if (lowerModel.includes('pro')) {
-        // Gemini Pro assumption
-        cost = (inM * 3.00) + (outM * 10.00);
-      } else if (lowerModel.includes('flash')) {
-        // Flash assumption (~$0.10 blended or per side? Prompt said ~$0.1/1M. Let's assume symmetric low cost)
-        cost = (inM * 0.10) + (outM * 0.10);
-      } else if (lowerModel.includes('gpt-5') || lowerModel.includes('gpt-4')) { // GPT-5.2 / GPT-4 placeholder
-         // GPT-5.2 ~$5/15 assumption from prompt
-        cost = (inM * 5.00) + (outM * 15.00);
+
+      // Find pricing
+      let pricing = null;
+      for (const [key, price] of Object.entries(PRICING_TABLE)) {
+        if (lowerModel.includes(key)) {
+          pricing = price;
+          break; // Stop at first match (assumes table is ordered specific-to-general)
+        }
+      }
+
+      if (pricing) {
+        cost = (inM * pricing.in) + (outM * pricing.out);
       } else {
-        // Fallback / Unknown - assume zero or standard low rate? Let's mark as 0/Unknown
         cost = 0;
       }
 
