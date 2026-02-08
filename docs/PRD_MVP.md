@@ -1,7 +1,7 @@
 # Product Requirements Document (MVP)
 **Project**: Lightweight Observability Skill (OpenClaw)
 **Status**: Implemented (v1.0)
-**Owner**: 0xPanda & BigBlackie
+**Owner**: erain
 **Date**: 2026-02-08
 
 #### 1. Problem & Goal
