@@ -83,6 +83,33 @@ export async function get_cost_report() {
 }
 
 export async function get_recent_errors() {
+  let systemLogsOutput = "";
+  let sessionErrorsOutput = "";
+
+  // 1. System Logs (Journalctl)
+  try {
+    const { stdout } = await execPromise('journalctl --user -u openclaw-gateway -n 100 --no-pager');
+    const lines = stdout.split('\n');
+    const filteredLines = lines.filter(line => {
+      const lower = line.toLowerCase();
+      return lower.includes('error') || lower.includes('exception') || lower.includes('fail') || lower.includes('warn');
+    });
+
+    // Unique entries
+    const uniqueLines = [...new Set(filteredLines)];
+    // Limit to last 10
+    const last10 = uniqueLines.slice(-10);
+
+    if (last10.length > 0) {
+      systemLogsOutput = last10.map(l => `- \`${l.trim()}\``).join('\n');
+    } else {
+      systemLogsOutput = "No recent error/warning logs found in journalctl.";
+    }
+  } catch (error) {
+    systemLogsOutput = `Failed to retrieve system logs: ${error.message}`;
+  }
+
+  // 2. Session Errors (Secondary)
   try {
     const sessions = await getSessions(50);
     
@@ -93,18 +120,17 @@ export async function get_recent_errors() {
       return statusNotOk || aborted;
     });
 
-    if (failedSessions.length === 0) {
-      return "No recent failed sessions found.";
+    if (failedSessions.length > 0) {
+      sessionErrorsOutput = failedSessions.map(s => 
+        `- **${s.id}** (${s.title || 'Untitled'}): Status=${s.lastStatus || 'N/A'}, Aborted=${s.abortedLastRun || false}`
+      ).join('\n');
+    } else {
+      sessionErrorsOutput = "No recent failed sessions found.";
     }
-
-    let output = "## ⚠️ Recent Session Errors\n\n";
-    for (const s of failedSessions) {
-      output += `- **${s.id}** (${s.title || 'Untitled'}): Status=${s.lastStatus || 'N/A'}, Aborted=${s.abortedLastRun || false}\n`;
-    }
-    
-    return output;
-
   } catch (error) {
-    return `Error checking for errors: ${error.message}`;
+    sessionErrorsOutput = `Error checking sessions: ${error.message}`;
   }
+
+  // 3. Combined Output
+  return `## 🖥️ System Logs (Journalctl)\n${systemLogsOutput}\n\n## 💥 Failed Sessions\n${sessionErrorsOutput}`;
 }
