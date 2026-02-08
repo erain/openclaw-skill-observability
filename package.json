@@ -4,6 +4,10 @@
   "description": "Observability tools for OpenClaw (logs, costs)",
   "main": "index.mjs",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erain/openclaw-skill-observability.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +16,6 @@
     "skill",
     "observability"
   ],
-  "author": "",
-  "license": "ISC"
+  "author": "0xPanda",
+  "license": "MIT"
 }
