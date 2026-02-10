@@ -18,8 +18,13 @@ const PRICING_TABLE = {
   'claude-3-opus': { in: 15.00, out: 75.00 },
 
   // Google
+  'gemini-3-pro': { in: 3.50, out: 10.50 },
+  'gemini-3-flash': { in: 0.075, out: 0.30 },
   'gemini-1.5-pro': { in: 3.50, out: 10.50 },
   'gemini-1.5-flash': { in: 0.075, out: 0.30 },
+
+  // Zai (GLM)
+  'glm-4': { in: 0.10, out: 0.10 },
 
   // DeepSeek
   'deepseek-chat': { in: 0.14, out: 0.28 },
